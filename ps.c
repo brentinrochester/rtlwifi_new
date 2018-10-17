@@ -291,7 +291,11 @@ void rtl_ips_nic_on(struct ieee80211_hw *hw)
 	struct rtl_ps_ctl *ppsc = rtl_psc(rtl_priv(hw));
 	enum rf_pwrstate rtstate;
 
-	cancel_delayed_work_sync(&rtlpriv->works.ips_nic_off_wq);
+	if ( in_atomic() || irqs_disabled() ) {
+		cancel_delayed_work(&rtlpriv->works.ips_nic_off_wq);
+	} else {
+		cancel_delayed_work_sync(&rtlpriv->works.ips_nic_off_wq);
+	}
 
 	spin_lock(&rtlpriv->locks.ips_lock);
 	if (ppsc->inactiveps) {
